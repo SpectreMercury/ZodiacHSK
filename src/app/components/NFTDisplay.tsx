@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
-import { useState, useEffect, useCallback } from 'react';
-import { useAccount, useContractReads } from 'wagmi';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useAccount, useContractRead, useContractReads } from 'wagmi';
 import { Abi, Address } from 'viem';
 import { ZODIAC_NFT_ADDRESS, ZODIAC_NFT_ABI, ZODIAC_TRADING_ADDRESS, ZODIAC_TRADING_ABI } from '@/constants/constants';
 
@@ -20,35 +20,25 @@ export default function NFTDisplay() {
   const [nfts, setNfts] = useState<NFTData[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: collectionData, isError, error: contractError } = useContractReads({
-    contracts: [
-      {
-        address: ZODIAC_NFT_ADDRESS as Address,
-        abi: ZODIAC_NFT_ABI as Abi,
-        functionName: 'balanceOf',
-        args: [address as Address],
-      },
-      ...Array(12).fill(0).map((_, i) => ({
-        address: ZODIAC_TRADING_ADDRESS as Address,
-        abi: ZODIAC_TRADING_ABI as Abi,
-        functionName: 'userZodiacCollection',
-        args: [address as Address, i.toString()],
-      })),
-    ],
+  const { data: userNFTs, isError: isNFTsError, error: nftsError } = useContractRead({
+    address: ZODIAC_TRADING_ADDRESS as Address,
+    abi: ZODIAC_TRADING_ABI as Abi,
+    functionName: 'getUserNFTs',
+    args: [address],
   });
 
-  const tokenIds = collectionData?.slice(1)
-    .map(item => item.result)
-    .filter(id => id && typeof id === 'bigint' && id !== BigInt(0))
-    .map(id => id!.toString());
-
-  const { data: tokenURIs } = useContractReads({
-    contracts: tokenIds?.map(id => ({
+  const tokenURIContracts = useMemo(() => {
+    if (!userNFTs) return [];
+    return (userNFTs as bigint[]).map((tokenId) => ({
       address: ZODIAC_NFT_ADDRESS as Address,
       abi: ZODIAC_NFT_ABI as Abi,
       functionName: 'tokenURI',
-      args: [id],
-    })) ?? [],
+      args: [tokenId.toString()], // 将 BigInt 转换为字符串
+    }));
+  }, [userNFTs]);
+
+  const { data: tokenURIData, isError: isTokenURIError, error: tokenURIError } = useContractReads({
+    contracts: tokenURIContracts,
   });
 
   const parseMetadata = useCallback((tokenURI: string): NFTMetadata => {
@@ -62,28 +52,28 @@ export default function NFTDisplay() {
   }, []);
 
   useEffect(() => {
-    if (isError) {
-      setError(`获取数据时出错: ${contractError?.message}`);
+    if (isNFTsError || isTokenURIError) {
+      setError(`获取数据时出错: ${nftsError?.message || tokenURIError?.message}`);
       return;
     }
 
-    if (!tokenURIs) return;
-
-    const nftData: NFTData[] = tokenURIs
-      .map((uriResult, index) => {
-        if (!uriResult.result) return null;
+    if (userNFTs && tokenURIData) {
+      const nftData = (userNFTs as bigint[]).map((tokenId, index) => {
+        const uriResult = tokenURIData[index];
+        if (!uriResult.result || uriResult.status !== 'success') return null;
         try {
           const metadata = parseMetadata(uriResult.result as string);
-          return { id: tokenIds![index], metadata };
+          return { id: tokenId.toString(), metadata };
         } catch (error) {
-          console.error('Error parsing NFT metadata:', error);
+          console.error('解析 NFT 元数据时出错:', error);
           return null;
         }
-      })
-      .filter((item): item is NFTData => item !== null);
+      }).filter((item): item is NFTData => item !== null);
 
-    setNfts(nftData);
-  }, [tokenURIs, tokenIds, isError, contractError, parseMetadata]);
+      setNfts(nftData);
+      console.log('Set NFTs:', nftData);
+    }
+  }, [userNFTs, tokenURIData, isNFTsError, isTokenURIError, nftsError, tokenURIError, parseMetadata]);
 
   if (error) {
     return <div className="mt-8 text-red-400 bg-red-900/50 p-4 rounded-lg">{error}</div>;

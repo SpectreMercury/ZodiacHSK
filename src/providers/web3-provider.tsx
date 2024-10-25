@@ -12,20 +12,20 @@ import {
 import { Chain } from 'wagmi/chains';
 
 // 定义 Polygon Amoy 测试网
-const polygonAmoy: Chain = {
-  id: 80_002,
-  name: 'Polygon Amoy',
+const HashkeyTestnet: Chain = {
+  id: 133,
+  name: 'HashKey Chain Testnet',
   nativeCurrency: {
     decimals: 18,
-    name: 'Polygon',
-    symbol: 'MATIC',
+    name: 'HSK',
+    symbol: 'HSK',
   },
   rpcUrls: {
-    public: { http: ['https://rpc-amoy.polygon.technology'] },
-    default: { http: ['https://rpc-amoy.polygon.technology'] },
+    public: { http: ['https://hashkeychain-testnet.alt.technology'] },
+    default: { http: ['https://hashkeychain-testnet.alt.technology'] },
   },
   blockExplorers: {
-    default: { name: 'PolygonScan', url: 'https://amoy.polygonscan.com' },
+    default: { name: 'HashKey Chain Testnet Explorer', url: 'https://hashkeychain-testnet-explorer.alt.technology' },
   },
   testnet: true,
 };
@@ -33,7 +33,7 @@ const polygonAmoy: Chain = {
 export const config = getDefaultConfig({
   appName: "Zodiac NFT",
   projectId: "6b4643484902a88bd040d924e58d95dc", // 请确保这是一个有效的 WalletConnect projectId
-  chains: [polygonAmoy],
+  chains: [HashkeyTestnet],
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,
