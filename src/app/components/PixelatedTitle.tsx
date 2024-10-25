@@ -1,24 +1,23 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 const PixelatedTitle: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 200 });
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
+  const drawCanvas = (canvas: HTMLCanvasElement, width: number, height: number) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const text = 'Hashkey Chain';
-    const pixelSize = 4;
+    const pixelSize = Math.max(2, Math.floor(width / 200));
     
-    canvas.width = 800;
-    canvas.height = 200;
+    canvas.width = width;
+    canvas.height = height;
 
-    ctx.font = 'bold 80px Arial';
+    const fontSize = Math.max(20, Math.floor(width / 10));
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.fillStyle = 'white';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -36,7 +35,41 @@ const PixelatedTitle: React.FC = () => {
       }
     }
 
+    return imageData;
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = Math.min(800, window.innerWidth - 40);
+      const height = Math.floor(width / 4);
+      setDimensions({ width, height });
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = dimensions.width * dpr;
+    canvas.height = dimensions.height * dpr;
+    canvas.style.width = `${dimensions.width}px`;
+    canvas.style.height = `${dimensions.height}px`;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+
+    const imageData = drawCanvas(canvas, dimensions.width, dimensions.height);
+    if (!imageData) return;
+
     const particles: { x: number; y: number; originX: number; originY: number; size: number; color: string }[] = [];
+    const pixelSize = Math.max(2, Math.floor(dimensions.width / 200));
 
     for (let y = 0; y < canvas.height; y += pixelSize) {
       for (let x = 0; x < canvas.width; x += pixelSize) {
@@ -54,10 +87,10 @@ const PixelatedTitle: React.FC = () => {
       }
     }
 
-    canvas.addEventListener('mousemove', (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
+      const mouseX = (e.clientX - rect.left) * dpr;
+      const mouseY = (e.clientY - rect.top) * dpr;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -67,7 +100,7 @@ const PixelatedTitle: React.FC = () => {
         const distance = Math.sqrt(dx * dx + dy * dy);
         const forceDirectionX = dx / distance;
         const forceDirectionY = dy / distance;
-        const maxDistance = 100;
+        const maxDistance = 100 * dpr;
         const force = (maxDistance - distance) / maxDistance;
         const directionX = forceDirectionX * force * 8;
         const directionY = forceDirectionY * force * 8;
@@ -78,9 +111,9 @@ const PixelatedTitle: React.FC = () => {
         ctx.fillStyle = p.color;
         ctx.fillRect(p.x, p.y, p.size, p.size);
       });
-    });
+    };
 
-    canvas.addEventListener('mouseleave', () => {
+    const handleMouseLeave = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach((p) => {
         p.x = p.originX;
@@ -88,11 +121,18 @@ const PixelatedTitle: React.FC = () => {
         ctx.fillStyle = p.color;
         ctx.fillRect(p.x, p.y, p.size, p.size);
       });
-    });
+    };
 
-  }, []);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
 
-  return <canvas ref={canvasRef} className="mx-auto" />;
+    return () => {
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [dimensions]);
+
+  return <canvas ref={canvasRef} className="mx-auto max-w-full" />;
 };
 
 export default PixelatedTitle;
