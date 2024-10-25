@@ -89,18 +89,18 @@ export default function MintNFT() {
   }, [isSuccess, isError]);
 
   return (
-    <div>
+    <div className="w-full max-w-md mx-auto">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-      <div className="flex justify-end mb-8">
+      <div className="flex justify-center mb-8">
         <ConnectButton />
       </div>
       {isConnected && address ? (
-        <div className="mb-8 bg-white/10 backdrop-blur-md rounded-lg p-6 shadow-lg">
-          <p className="mb-2 text-lg">当前连接地址: <span className="font-mono text-sm">{address}</span></p>
-          <p className="mb-2 text-lg">当前余额: <span className="font-bold">{accountBalance ? parseFloat(formatEther(accountBalance.value)).toFixed(4) : '0'} HSK</span></p>
-          <p className="mb-4 text-xl">您当前持有的 NFT 数量: <span className="font-bold text-2xl">{nftBalance}</span></p>
+        <div className="mb-8 bg-white/10 backdrop-blur-md rounded-lg p-4 sm:p-6 shadow-lg">
+          <p className="mb-2 text-sm sm:text-lg break-all">当前连接地址: <span className="font-mono text-xs sm:text-sm">{address}</span></p>
+          <p className="mb-2 text-sm sm:text-lg">当前余额: <span className="font-bold">{accountBalance ? parseFloat(formatEther(accountBalance.value)).toFixed(4) : '0'} HSK</span></p>
+          <p className="mb-4 text-lg sm:text-xl">您当前持有的 NFT 数量: <span className="font-bold text-xl sm:text-2xl">{nftBalance}</span></p>
           <button 
-            className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+            className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
             onClick={handleMint} 
             disabled={isMinting || isPending}
           >
@@ -108,7 +108,7 @@ export default function MintNFT() {
           </button>
         </div>
       ) : (
-        <p className="mb-8 text-xl text-center">请连接钱包以铸造 NFT</p>
+        <p className="mb-8 text-lg sm:text-xl text-center">请连接钱包以铸造 NFT</p>
       )}
       <NFTDisplay />
     </div>

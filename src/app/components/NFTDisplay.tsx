@@ -80,23 +80,23 @@ export default function NFTDisplay() {
   }
 
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-bold mb-6 text-center">您的 NFT 收藏</h2>
+    <div className="mt-12">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center">您的 NFT 收藏</h2>
       {nfts.length === 0 ? (
-        <p className="text-center text-xl text-gray-300">您还没有任何 NFT</p>
+        <p className="text-center text-xl sm:text-2xl text-gray-300">您还没有任何 NFT</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           {nfts.map((nft) => (
-            <div key={nft.id} className="bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden shadow-lg transform transition duration-300 hover:scale-105">
+            <div key={nft.id} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg transform transition duration-300 hover:scale-105">
               <div className="relative pb-[100%]">
                 {nft.metadata.image && (
                   <img src={nft.metadata.image} alt={`NFT #${nft.id}`} className="absolute inset-0 w-full h-full object-cover" />
                 )}
               </div>
-              <div className="p-3">
-                <h3 className="text-lg font-semibold mb-1">NFT #{nft.id}</h3>
-                <p className="text-sm text-gray-300"><strong>名称:</strong> {nft.metadata.name}</p>
-                <p className="text-sm text-gray-300 mt-1 truncate"><strong>描述:</strong> {nft.metadata.description}</p>
+              <div className="p-6">
+                <h3 className="text-2xl font-bold mb-2">NFT #{nft.id}</h3>
+                <p className="text-lg text-gray-300 mb-2"><strong>名称:</strong> {nft.metadata.name}</p>
+                <p className="text-lg text-gray-300"><strong>描述:</strong> {nft.metadata.description}</p>
               </div>
             </div>
           ))}
